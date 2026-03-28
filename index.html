@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CatatDuit v2.0 - DIKAPERM</title>
+    <title>CatatDuit v2.1 - DIKAPERM</title>
     <style>
         :root { --biru: #3498db; --gelap: #2c3e50; --hijau: #2ecc71; --merah: #e74c3c; --bg: #f4f7f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; flex-direction: column; align-items: center; }
         
         .container { background: white; width: 100%; max-width: 400px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); min-height: 95vh; box-sizing: border-box; position: relative; padding-bottom: 70px; }
         
-        /* Header & Logo Classic */
+        /* Header */
         .header-area { position: relative; width: 100%; margin-bottom: 15px; }
         .logo { text-align: center; color: var(--gelap); font-size: 2rem; font-weight: bold; cursor: pointer; }
         .btn-gear { position: absolute; right: 0; top: 5px; font-size: 1.5rem; cursor: pointer; color: #ccc; transition: 0.3s; }
         .btn-gear:hover { color: var(--biru); transform: rotate(45deg); }
 
-        /* Dashboard Card */
+        /* Dashboard */
         .card-saldo { background: linear-gradient(135deg, var(--biru), #2980b9); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
         .card-saldo h2 { margin: 8px 0; font-size: 1.5rem; }
         .row-info { display: flex; justify-content: space-around; font-size: 0.8rem; opacity: 0.9; }
 
-        /* Navigasi 3 Tab */
         .nav-tabs { display: flex; gap: 5px; background: #eee; padding: 5px; border-radius: 12px; margin-bottom: 15px; }
         .btn-tab { flex: 1; padding: 10px 5px; border: none; background: none; color: #777; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.75rem; outline: none; }
         .btn-tab.active { background: white; color: var(--gelap); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -29,42 +28,41 @@
         .content { display: none; }
         .content.active { display: block; }
 
-        /* Form */
         form { display: flex; flex-direction: column; gap: 8px; }
         label { font-size: 0.7rem; font-weight: bold; color: #666; margin-left: 5px; text-transform: uppercase; }
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; width: 100%; box-sizing: border-box; outline: none; background: #fff; }
         .btn-simpan { padding: 15px; background: var(--hijau); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px; }
 
-        /* Kalender Grid */
+        /* Settings Modal & Dropdowns */
+        #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 95%; max-width: 380px; padding: 25px; border-radius: 20px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .credit-msg { font-size: 0.85rem; color: #555; font-style: italic; background: #f0f7ff; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid var(--biru); line-height: 1.4; }
+        
+        details { background: #f9f9f9; border-radius: 10px; margin-bottom: 10px; overflow: hidden; text-align: left; }
+        summary { padding: 12px; font-size: 0.85rem; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::after { content: '▼'; font-size: 0.7rem; color: #aaa; }
+        details[open] summary::after { content: '▲'; }
+        
+        .btn-tool { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; font-size: 0.8rem; cursor: pointer; background: #fff; margin-bottom: 8px; text-align: left; font-weight: bold; }
+        .btn-close { margin-top: 15px; background: var(--gelap); color: white; padding: 12px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+
+        /* Tab Pos */
+        .pos-card { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .hr-pos { border: 0; border-top: 1.5px solid #eee; margin: 5px 0; width: 100%; }
+
+        /* Calendar */
         .cal-wrapper { background: #f9fbfe; border-radius: 15px; padding: 10px; border: 1px solid #eee; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
         .cal-head { font-size: 0.6rem; font-weight: bold; color: #aaa; padding-bottom: 5px; text-transform: uppercase; }
-        .cal-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border-radius: 8px; cursor: pointer; position: relative; }
+        .cal-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border-radius: 8px; cursor: pointer; }
         .cal-day.active { background: var(--biru) !important; color: white !important; font-weight: bold; }
         .has-in { background: #e8f8f0; color: #27ae60; }
         .has-out { background: #fef0f0; color: #e74c3c; }
         .has-both { background: #f0f7ff; color: #2980b9; }
 
-        /* Ringkasan Harian Dynamic */
         .daily-box { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-around; text-align: center; }
-        .daily-item { flex: 1; }
-        .daily-item span { font-size: 0.6rem; color: #999; display: block; text-transform: uppercase; margin-bottom: 2px; }
-        .daily-item b { font-size: 0.85rem; }
-
-        /* Settings Modal */
-        #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; }
-        .credit-msg { font-size: 0.85rem; color: #555; font-style: italic; background: #f0f7ff; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid var(--biru); line-height: 1.4; }
-        .btn-tool { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; font-size: 0.8rem; cursor: pointer; background: #fff; margin-bottom: 8px; text-align: left; font-weight: bold; }
-        .btn-close { margin-top: 10px; background: var(--gelap); color: white; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; }
-
-        /* Pos Anggaran Card */
-        .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pos-card { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 12px; font-size: 0.8rem; }
-        .pos-card span { font-size: 0.7rem; color: #888; display: block; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .pos-card b { display: block; }
-
-        /* Transaction List */
+        .daily-item span { font-size: 0.6rem; color: #999; display: block; text-transform: uppercase; }
+        
         ul { list-style: none; padding: 0; margin: 10px 0; }
         li { padding: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff; margin-bottom: 8px; border-radius: 12px; border: 1px solid #eee; }
         .list-masuk { border-left: 5px solid var(--hijau); }
@@ -72,11 +70,7 @@
         
         .footer { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; font-size: 0.7rem; color: #ccc; letter-spacing: 1px; }
 
-        @media print {
-            #settings-modal, .nav-tabs, form, .cal-wrapper, .btn-gear, .footer, button, input, select { display: none !important; }
-            .container { box-shadow: none; max-width: 100%; border: none; width: 100%; padding: 0; }
-            .content { display: block !important; }
-        }
+        @media print { #settings-modal, .nav-tabs, form, .cal-wrapper, .btn-gear, .footer, button, input, select { display: none !important; } .container { box-shadow: none; max-width: 100%; border: none; width: 100%; padding: 0; } }
     </style>
 </head>
 <body>
@@ -90,11 +84,7 @@
     <div class="card-saldo">
         <p style="margin:0; font-size:0.7rem;">Total Duit</p>
         <h2 id="view-saldo">Rp 0</h2>
-        <div class="row-info">
-            <span>Masuk: <b id="view-in">0</b></span>
-            <span>|</span>
-            <span>Keluar: <b id="view-out">0</b></span>
-        </div>
+        <div class="row-info"><span>Masuk: <b id="view-in">0</b></span><span>|</span><span>Keluar: <b id="view-out">0</b></span></div>
     </div>
 
     <div class="nav-tabs">
@@ -105,63 +95,49 @@
 
     <div id="tab-catat" class="content active">
         <form onsubmit="simpanData(event)">
-            <label>Jenis</label>
-            <select id="i-jenis" onchange="sinkronKategori()">
-                <option value="keluar">🔴 Pengeluaran</option>
-                <option value="masuk">🟢 Pemasukan</option>
-            </select>
-            <label>Kategori Utama</label>
-            <select id="i-kat" onchange="cekKategoriBaru()"></select>
-            <div id="box-baru" style="display:none; margin-top:5px;"><input type="text" id="i-nama-baru" placeholder="Nama kategori baru..."></div>
-            <label>Sub-Kategori (Detail)</label>
-            <input type="text" id="i-sub" placeholder="Misal: Listrik, Jajan, Sembako">
-            <label>Tanggal</label>
-            <input type="date" id="i-tgl" required>
-            <label>Keterangan</label>
-            <input type="text" id="i-ket" placeholder="Keterangan singkat" required>
-            <label>Nominal (Rp)</label>
-            <input type="text" id="i-nom" placeholder="0" oninput="mask(this)" required>
+            <label>Jenis</label><select id="i-jenis" onchange="sinkronKategori()"><option value="keluar">🔴 Pengeluaran</option><option value="masuk">🟢 Pemasukan</option></select>
+            <label>Kategori Utama</label><select id="i-kat" onchange="cekKategoriBaru()"></select>
+            <div id="box-baru" style="display:none; margin-top:5px;"><input type="text" id="i-nama-baru" placeholder="Ketik nama kategori baru..."></div>
+            <label>Sub-Kategori</label><input type="text" id="i-sub" placeholder="Detail belanja...">
+            <label>Tanggal</label><input type="date" id="i-tgl" required>
+            <label>Keterangan</label><input type="text" id="i-ket" placeholder="Keterangan singkat" required>
+            <label>Nominal (Rp)</label><input type="text" id="i-nom" placeholder="0" oninput="mask(this)" required>
             <button type="submit" class="btn-simpan">Simpan Transaksi</button>
         </form>
     </div>
 
     <div id="tab-riwayat" class="content">
         <div style="background:#fff; border:1px solid #eee; padding:10px; border-radius:12px; margin-bottom:15px;">
-            <label>Bulan</label>
-            <input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();">
-            <label style="display:block; margin-top:10px;">Filter Kategori</label>
-            <select id="f-kat" onchange="renderUI()"></select>
-            <label style="display:block; margin-top:10px;">Cari Sub-Kategori</label>
-            <input type="text" id="f-sub" placeholder="Ketik detail..." oninput="renderUI()">
+            <label>Bulan</label><input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();">
+            <label style="display:block; margin-top:10px;">Filter Kategori</label><select id="f-kat" onchange="renderUI()"></select>
+            <label style="display:block; margin-top:10px;">Cari Sub-Kategori</label><input type="text" id="f-sub" placeholder="Ketik detail..." oninput="renderUI()">
         </div>
         <div class="cal-wrapper"><div class="cal-grid" id="cal-grid"></div></div>
-        <div class="daily-box">
-            <div class="daily-item"><span>Masuk Tanggal Ini</span><b id="day-in" style="color:var(--hijau)">0</b></div>
-            <div style="color:#eee; font-weight:100;">|</div>
-            <div class="daily-item"><span>Keluar Tanggal Ini</span><b id="day-out" style="color:var(--merah)">0</b></div>
-        </div>
+        <div class="daily-box"><div class="daily-item"><span>Masuk Tanggal Ini</span><b id="day-in" style="color:var(--hijau)">0</b></div><div style="color:#eee">|</div><div class="daily-item"><span>Keluar Tanggal Ini</span><b id="day-out" style="color:var(--merah)">0</b></div></div>
         <div id="list-render"></div>
     </div>
 
     <div id="tab-pos" class="content">
         <p style="font-size:0.7rem; color:#888; text-align:center; margin-bottom:15px;">Ringkasan per Kategori (Bulan Ini)</p>
-        <div id="pos-render" class="pos-grid"></div>
+        <div id="pos-render" style="display:flex; flex-direction:column; gap:10px;"></div>
     </div>
 
     <div id="settings-modal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">⚙️ Pengaturan</h3>
-            <div class="credit-msg">
-                "Terima kasih istri saya yang sudah memotivasi saya untuk membuat aplikasi ini."
+            <h3 style="margin-top:0;">⚙️ Pengaturan</h3><span style="font-size:0.6rem; color:#ccc;">Versi 2.1</span>
+            <div class="credit-msg">"Terima kasih untuk istri saya tercinta yang sudah memotivasi saya untuk membuat aplikasi ini."</div>
+            
+            <div style="text-align:left; margin-bottom:15px; border:1px solid #eee; padding:10px; border-radius:10px;">
+                <label style="font-size:0.6rem;">Pilih Kategori Untuk PDF</label><select id="pdf-kat-select" style="font-size:0.8rem; margin:5px 0;"></select>
+                <button class="btn-tool" style="background:var(--biru); color:white; border:none; margin:0;" onclick="generateDataReport()">📄 Download Laporan PDF</button>
             </div>
-            <button class="btn-tool" onclick="window.print()">📄 Cetak Laporan (PDF)</button>
-            <button class="btn-tool" style="color:var(--biru)" onclick="ekspor()">💾 Simpan Backup (Export)</button>
-            <button class="btn-tool" style="color:var(--merah)" onclick="document.getElementById('file-in').click()">📂 Pulihkan Data (Restore)</button>
-            <input type="file" id="file-in" style="display:none" onchange="impor(event)">
+
+            <details><summary>📂 Backup & Restore</summary><div style="padding:10px;"><button class="btn-tool" style="color:var(--biru)" onclick="ekspor()">💾 Simpan Backup (Export)</button><button class="btn-tool" style="color:var(--merah)" onclick="document.getElementById('file-in').click()">📂 Pulihkan Data (Restore)</button><input type="file" id="file-in" style="display:none" onchange="impor(event)"></div></details>
+            <details><summary>🛠️ Kelola Kategori</summary><div style="padding:10px;" id="manage-kat-list"></div></details>
+            
             <button class="btn-close" onclick="toggleSettings()">Tutup</button>
         </div>
     </div>
-
     <div class="footer">DIKAPERM 2026</div>
 </div>
 
@@ -169,157 +145,68 @@
     let dbTrans = JSON.parse(localStorage.getItem('dataDuit')) || [];
     let dbKat = JSON.parse(localStorage.getItem('katUser')) || { masuk: [], keluar: [] };
     let selectedDate = new Date().toISOString().split('T')[0];
-    const KAT_DEF = { masuk: ['Gaji', 'Bonus'], keluar: ['Sembako', 'Jajan', 'Transport', 'Tagihan'] };
 
     function toggleSettings() {
         const modal = document.getElementById('settings-modal');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    function bukaHalaman(id) {
-        document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).style.display = 'block';
-        if(id === 'tab-catat') {
-            document.getElementById('tab-btn-catat').classList.add('active');
-            sinkronKategori();
-        } else if(id === 'tab-riwayat') {
-            document.getElementById('btn-tab-riwayat').classList.add('active');
-            updateFilterDropdown(); renderCalendar(); renderUI();
-        } else {
-            document.getElementById('btn-tab-pos').classList.add('active');
-            renderPos();
+        const isOpen = modal.style.display === 'flex';
+        modal.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) { 
+            renderManageCategories(); 
+            updatePdfSelect();
+            // FIX: Tutup semua accordion saat modal dibuka
+            document.querySelectorAll('#settings-modal details').forEach(d => d.open = false);
         }
     }
 
-    function sinkronKategori() {
-        const j = document.getElementById('i-jenis').value;
-        const sel = document.getElementById('i-kat');
-        const kats = [...new Set([...KAT_DEF[j], ...(dbKat[j] || [])])];
-        sel.innerHTML = kats.map(k => `<option value="${k}">${k}</option>`).join('') + '<option value="BARU">➕ Tambah Baru...</option>';
-        cekKategoriBaru();
+    function updatePdfSelect() {
+        const sel = document.getElementById('pdf-kat-select');
+        const kats = [...new Set([...dbKat.masuk, ...dbKat.keluar])].sort();
+        sel.innerHTML = '<option value="ALL">📋 Cetak Semua Kategori</option>' + kats.map(k => `<option value="${k}">🔍 ${k}</option>`).join('');
     }
 
-    function cekKategoriBaru() {
-        const v = document.getElementById('i-kat').value;
-        document.getElementById('box-baru').style.display = (v === 'BARU') ? 'block' : 'none';
+    function generateDataReport() {
+        const bln = document.getElementById('f-bulan').value || new Date().toISOString().slice(0, 7);
+        const filK = document.getElementById('pdf-kat-select').value;
+        const filtered = dbTrans.filter(d => d.tanggal.startsWith(bln) && (filK === "ALL" || d.kategori === filK)).sort((a,b) => a.tanggal.localeCompare(b.tanggal));
+        if(filtered.length === 0) return alert('Tidak ada data.');
+        let html = `<html><head><title>Laporan_${bln}</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:10px;text-align:left;font-size:12px}th{background:#f4f4f4}.tr{text-align:right}.hj{color:#27ae60}.mr{color:#e74c3c}</style></head><body><h1>LAPORAN CATATDUIT</h1><p style="text-align:center">Periode: ${bln} | Kategori: ${filK}</p><table><thead><tr><th>Tgl</th><th>Kategori</th><th>Detail</th><th>Ket</th><th>Masuk (Rp)</th><th>Keluar (Rp)</th></tr></thead><tbody>`;
+        let tin = 0, tout = 0; filtered.forEach(d => { const n = parseInt(d.nominal); const isM = d.jenis === 'masuk'; if(isM) tin += n; else tout += n; html += `<tr><td>${d.tanggal.split('-').reverse().join('/')}</td><td>${d.kategori}</td><td>${d.subKategori || '-'}</td><td>${d.ket}</td><td class="tr ${isM?'hj':''}">${isM?n.toLocaleString('id-ID'):'-'}</td><td class="tr ${!isM?'mr':''}">${!isM?n.toLocaleString('id-ID'):'-'}</td></tr>`; });
+        html += `<tr style="font-weight:bold; background:#eee"><td colspan="4" class="tr">TOTAL</td><td class="tr hj">${tin.toLocaleString('id-ID')}</td><td class="tr mr">${tout.toLocaleString('id-ID')}</td></tr><tr style="font-weight:bold"><td colspan="4" class="tr">SISA SALDO</td><td colspan="2" class="tr" style="color:#3498db;font-size:16px">Rp ${(tin-tout).toLocaleString('id-ID')}</td></tr></tbody></table><p style="text-align:center;font-size:10px;margin-top:50px;color:#aaa">DIKAPERM 2026</p><script>window.onload=function(){window.print();}<\/script></body></html>`;
+        const win = window.open('', '_blank'); win.document.write(html); win.document.close();
     }
 
-    function updateFilterDropdown() {
-        const sel = document.getElementById('f-kat');
-        if(!sel) return;
-        const val = sel.value;
-        const kats = [...new Set([...KAT_DEF.masuk, ...KAT_DEF.keluar, ...dbKat.masuk, ...dbKat.keluar])].sort();
-        sel.innerHTML = '<option value="ALL">🌍 Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join('');
-        sel.value = val || "ALL";
+    function renderManageCategories() {
+        const container = document.getElementById('manage-kat-list'); container.innerHTML = '';
+        ['masuk', 'keluar'].forEach(jenis => { container.innerHTML += `<div style="font-size:0.6rem; color:#999; margin:10px 0 5px 0; font-weight:bold;">${jenis==='masuk'?'🟢 MASUK':'🔴 KELUAR'}</div>`; dbKat[jenis].forEach(nama => { const div = document.createElement('div'); div.style = "display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border-radius:8px; border:1px solid #eee; margin-bottom:5px; font-size:0.8rem;"; div.innerHTML = `<span>${nama}</span><span style="color:var(--merah); font-weight:bold; cursor:pointer; font-size:0.6rem; border:1px solid; padding:2px 5px; border-radius:4px;" onclick="hapusKategori('${nama}', '${jenis}')">HAPUS</span>`; container.appendChild(div); }); });
     }
 
+    function hapusKategori(n, j) { if (confirm(`Hapus "${n}"? Semua transaksi terkait akan terhapus!`)) { dbKat[j] = dbKat[j].filter(k => k !== n); dbTrans = dbTrans.filter(d => d.kategori !== n); localStorage.setItem('katUser', JSON.stringify(dbKat)); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderManageCategories(); renderUI(); renderCalendar(); } }
+    function bukaHalaman(id) { document.querySelectorAll('.content').forEach(c => c.style.display = 'none'); document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); document.getElementById(id).style.display = 'block'; if(id === 'tab-catat') { document.getElementById('tab-btn-catat').classList.add('active'); sinkronKategori(); } else if(id === 'tab-riwayat') { document.getElementById('btn-tab-riwayat').classList.add('active'); updateFilterDropdown(); renderCalendar(); renderUI(); } else { document.getElementById('btn-tab-pos').classList.add('active'); renderPos(); } }
+    function sinkronKategori() { const j = document.getElementById('i-jenis').value; const sel = document.getElementById('i-kat'); sel.innerHTML = dbKat[j].map(k => `<option value="${k}">${k}</option>`).join('') + '<option value="BARU">➕ Tambah Baru...</option>'; cekKategoriBaru(); }
+    function cekKategoriBaru() { document.getElementById('box-baru').style.display = (document.getElementById('i-kat').value === 'BARU') ? 'block' : 'none'; }
+    function updateFilterDropdown() { const sel = document.getElementById('f-kat'); if(!sel) return; const kats = [...new Set([...dbKat.masuk, ...dbKat.keluar])].sort(); sel.innerHTML = '<option value="ALL">🌍 Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join(''); }
     function renderCalendar() {
-        const grid = document.getElementById('cal-grid');
-        grid.innerHTML = `<div class="cal-head">Mi</div><div class="cal-head">Se</div><div class="cal-head">Sl</div><div class="cal-head">Ra</div><div class="cal-head">Ka</div><div class="cal-head">Ju</div><div class="cal-head">Sa</div>`;
-        const [year, month] = document.getElementById('f-bulan').value.split('-');
-        const firstDay = new Date(year, month - 1, 1).getDay();
-        const daysInMonth = new Date(year, month, 0).getDate();
-        for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            const tglStr = `${year}-${month}-${String(i).padStart(2, '0')}`;
-            const filterData = dbTrans.filter(d => d.tanggal === tglStr);
-            let status = filterData.length > 0 ? (filterData.some(d => d.jenis === 'masuk') && filterData.some(d => d.jenis === 'keluar') ? "has-both" : (filterData.some(d => d.jenis === 'masuk') ? "has-in" : "has-out")) : "";
-            const dayEl = document.createElement('div');
-            dayEl.className = `cal-day ${status} ${tglStr === selectedDate ? 'active' : ''}`;
-            dayEl.innerText = i;
-            dayEl.onclick = () => { selectedDate = tglStr; renderCalendar(); renderUI(); };
-            grid.appendChild(dayEl);
-        }
+        const grid = document.getElementById('cal-grid'); grid.innerHTML = `<div class="cal-head">Mi</div><div class="cal-head">Se</div><div class="cal-head">Sl</div><div class="cal-head">Ra</div><div class="cal-head">Ka</div><div class="cal-head">Ju</div><div class="cal-head">Sa</div>`;
+        const bln = document.getElementById('f-bulan').value || new Date().toISOString().slice(0, 7); const [y, m] = bln.split('-'); const first = new Date(y, m - 1, 1).getDay(); const days = new Date(y, m, 0).getDate();
+        for (let i = 0; i < first; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+        for (let i = 1; i <= days; i++) { const t = `${y}-${m}-${String(i).padStart(2, '0')}`; const filter = dbTrans.filter(d => d.tanggal === t); let s = filter.length > 0 ? (filter.some(d => d.jenis === 'masuk') && filter.some(d => d.jenis === 'keluar') ? "has-both" : (filter.some(d => d.jenis === 'masuk') ? "has-in" : "has-out")) : ""; const dEl = document.createElement('div'); dEl.className = `cal-day ${s} ${t === selectedDate ? 'active' : ''}`; dEl.innerText = i; dEl.onclick = () => { selectedDate = t; renderCalendar(); renderUI(); }; grid.appendChild(dEl); }
     }
-
     function renderUI() {
-        const container = document.getElementById('list-render');
-        const bln = document.getElementById('f-bulan').value;
-        const filK = document.getElementById('f-kat').value || "ALL";
-        const filSub = (document.getElementById('f-sub').value || "").toLowerCase();
-        let tin = 0, tout = 0, dayIn = 0, dayOut = 0;
-        
-        dbTrans.forEach(d => {
-            const mBln = d.tanggal.startsWith(bln);
-            const mKat = (filK === "ALL" || d.kategori === filK);
-            const mSub = (filSub === "" || (d.subKategori && d.subKategori.toLowerCase().includes(filSub)));
-            if(mBln && mKat && mSub) { const n = parseInt(d.nominal); d.jenis === 'masuk' ? tin += n : tout += n; }
-            if(d.tanggal === selectedDate && mKat && mSub) { const n = parseInt(d.nominal); d.jenis === 'masuk' ? dayIn += n : dayOut += n; }
-        });
-        
-        document.getElementById('view-in').innerText = tin.toLocaleString('id-ID');
-        document.getElementById('view-out').innerText = tout.toLocaleString('id-ID');
-        document.getElementById('view-saldo').innerText = "Rp " + (tin - tout).toLocaleString('id-ID');
-        document.getElementById('day-in').innerText = dayIn.toLocaleString('id-ID');
-        document.getElementById('day-out').innerText = dayOut.toLocaleString('id-ID');
-        
-        container.innerHTML = '';
-        const filteredList = dbTrans.filter(d => (d.tanggal === selectedDate) && (filK === "ALL" || d.kategori === filK) && (filSub === "" || (d.subKategori && d.subKategori.toLowerCase().includes(filSub))));
-        if (filteredList.length === 0) container.innerHTML = `<p style="text-align:center; color:#999; font-size:0.7rem; margin-top:15px;">Ketuk tanggal untuk detail harian.</p>`;
-        else {
-            const ul = document.createElement('ul');
-            filteredList.forEach(d => {
-                const li = document.createElement('li');
-                li.className = d.jenis === 'masuk' ? 'list-masuk' : 'list-keluar';
-                li.innerHTML = `<div><strong>${d.ket}</strong><br><small style="color:#888">${d.kategori}${d.subKategori ? ' > ' + d.subKategori : ''}</small></div>
-                <div style="text-align:right"><b style="color:${d.jenis==='masuk'?'var(--hijau)':'var(--merah)'}">${parseInt(d.nominal).toLocaleString('id-ID')}</b><br>
-                <span style="font-size:0.65rem; color:#aaa; cursor:pointer" onclick="hapusData(${d.id})">Hapus</span></div>`;
-                ul.appendChild(li);
-            });
-            container.appendChild(ul);
-        }
+        const container = document.getElementById('list-render'); const bln = document.getElementById('f-bulan').value || new Date().toISOString().slice(0, 7); const filK = document.getElementById('f-kat').value || "ALL"; const filS = (document.getElementById('f-sub').value || "").toLowerCase(); let tin = 0, tout = 0, dayIn = 0, dayOut = 0;
+        dbTrans.forEach(d => { const mB = d.tanggal.startsWith(bln), mK = (filK === "ALL" || d.kategori === filK), mS = (filS === "" || (d.subKategori && d.subKategori.toLowerCase().includes(filS))); if(mB && mK && mS) { const n = parseInt(d.nominal); d.jenis === 'masuk' ? tin += n : tout += n; } if(d.tanggal === selectedDate && mK && mS) { const n = parseInt(d.nominal); d.jenis === 'masuk' ? dayIn += n : dayOut += n; } });
+        document.getElementById('view-in').innerText = tin.toLocaleString('id-ID'); document.getElementById('view-out').innerText = tout.toLocaleString('id-ID'); document.getElementById('view-saldo').innerText = "Rp " + (tin - tout).toLocaleString('id-ID'); document.getElementById('day-in').innerText = dayIn.toLocaleString('id-ID'); document.getElementById('day-out').innerText = dayOut.toLocaleString('id-ID');
+        container.innerHTML = ''; const list = dbTrans.filter(d => (d.tanggal === selectedDate) && (filK === "ALL" || d.kategori === filK) && (filS === "" || (d.subKategori && d.subKategori.toLowerCase().includes(filS))));
+        if(list.length === 0) container.innerHTML = `<p style="text-align:center; color:#999; font-size:0.7rem; margin-top:15px;">Ketuk tanggal untuk detail.</p>`;
+        else { const ul = document.createElement('ul'); list.forEach(d => { const li = document.createElement('li'); li.className = d.jenis === 'masuk' ? 'list-masuk' : 'list-keluar'; li.innerHTML = `<div><strong>${d.ket}</strong><br><small style="color:#888">${d.kategori}${d.subKategori ? ' > '+d.subKategori : ''}</small></div><div style="text-align:right"><b style="color:${d.jenis==='masuk'?'var(--hijau)':'var(--merah)'}">${parseInt(d.nominal).toLocaleString('id-ID')}</b><br><span style="font-size:0.65rem; color:#aaa; cursor:pointer" onclick="hapusData(${d.id})">Hapus</span></div>`; ul.appendChild(li); }); container.appendChild(ul); }
     }
-
     function renderPos() {
-        const container = document.getElementById('pos-render');
-        const bln = new Date().toISOString().slice(0, 7);
-        container.innerHTML = '';
-        let posSummary = {};
-        dbTrans.forEach(d => {
-            if(d.tanggal.startsWith(bln)) {
-                if(!posSummary[d.kategori]) posSummary[d.kategori] = { in: 0, out: 0 };
-                const n = parseInt(d.nominal);
-                d.jenis === 'masuk' ? posSummary[d.kategori].in += n : posSummary[d.kategori].out += n;
-            }
-        });
-        Object.keys(posSummary).sort().forEach(k => {
-            const data = posSummary[k];
-            const sisa = data.in - data.out;
-            const card = document.createElement('div');
-            card.className = 'pos-card';
-            card.innerHTML = `<span>${k}</span>
-            <b style="color:var(--hijau)">+${data.in.toLocaleString('id-ID')}</b>
-            <b style="color:var(--merah)">-${data.out.toLocaleString('id-ID')}</b>
-            <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
-            <b style="color:${sisa>=0?'var(--biru)':'var(--merah)'}">${sisa.toLocaleString('id-ID')}</b>`;
-            container.appendChild(card);
-        });
-        if(Object.keys(posSummary).length === 0) container.innerHTML = `<p style="grid-column: 1/3; text-align:center; color:#999; font-size:0.8rem;">Belum ada data bulan ini.</p>`;
+        const container = document.getElementById('pos-render'); const bln = document.getElementById('f-bulan').value || new Date().toISOString().slice(0, 7); container.innerHTML = ''; let posS = {};
+        dbTrans.forEach(d => { if(d.tanggal.startsWith(bln)) { if(!posS[d.kategori]) posS[d.kategori] = { in: 0, out: 0 }; const n = parseInt(d.nominal); d.jenis === 'masuk' ? posS[d.kategori].in += n : posS[d.kategori].out += n; } });
+        Object.keys(posS).sort().forEach(k => { const data = posS[k]; const s = data.in - data.out; const card = document.createElement('div'); card.className = 'pos-card'; card.innerHTML = `<div style="font-weight:bold; font-size:0.9rem;">${k}</div><div style="text-align:right"><small style="color:var(--hijau)">+ ${data.in.toLocaleString('id-ID')}</small><br><small style="color:var(--merah)">- ${data.out.toLocaleString('id-ID')}</small><hr class="hr-pos"><b style="color:${s>=0?'var(--biru)':'var(--merah)'}">${s.toLocaleString('id-ID')}</b></div>`; container.appendChild(card); });
     }
-
-    function mask(el) {
-        let v = el.value.replace(/\D/g, '');
-        el.value = v ? parseInt(v).toLocaleString('id-ID') : '';
-    }
-
-    function simpanData(e) {
-        e.preventDefault();
-        const j = document.getElementById('i-jenis').value;
-        let k = document.getElementById('i-kat').value;
-        if(k === 'BARU') {
-            k = document.getElementById('i-nama-baru').value.trim();
-            if(!k) return alert('Isi nama kategori!');
-            if(!dbKat[j].includes(k)) dbKat[j].push(k);
-            localStorage.setItem('katUser', JSON.stringify(dbKat));
-        }
-        dbTrans.push({ id: Date.now(), tanggal: document.getElementById('i-tgl').value, jenis: j, kategori: k, subKategori: document.getElementById('i-sub').value, ket: document.getElementById('i-ket').value, nominal: document.getElementById('i-nom').value.replace(/\D/g, '') });
-        localStorage.setItem('dataDuit', JSON.stringify(dbTrans));
-        alert('Tersimpan!'); selectedDate = document.getElementById('i-tgl').value;
-        bukaHalaman('tab-riwayat');
-    }
-
-    function hapusData(id) { if(confirm('Hapus data ini?')) { dbTrans = dbTrans.filter(x => x.id !== id); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderCalendar(); renderUI(); } }
+    function mask(el) { let v = el.value.replace(/\D/g, ''); el.value = v ? parseInt(v).toLocaleString('id-ID') : ''; }
+    function simpanData(e) { e.preventDefault(); const j = document.getElementById('i-jenis').value; let k = document.getElementById('i-kat').value; if(k === 'BARU') { k = document.getElementById('i-nama-baru').value.trim(); if(!k) return alert('Isi nama!'); if(!dbKat[j].includes(k)) { dbKat[j].push(k); localStorage.setItem('katUser', JSON.stringify(dbKat)); } } dbTrans.push({ id: Date.now(), tanggal: document.getElementById('i-tgl').value, jenis: j, kategori: k, subKategori: document.getElementById('i-sub').value, ket: document.getElementById('i-ket').value, nominal: document.getElementById('i-nom').value.replace(/\D/g, '') }); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); alert('Tersimpan!'); selectedDate = document.getElementById('i-tgl').value; bukaHalaman('tab-riwayat'); }
+    function hapusData(id) { if(confirm('Hapus data?')) { dbTrans = dbTrans.filter(x => x.id !== id); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderCalendar(); renderUI(); } }
     function ekspor() { const blob = new Blob([JSON.stringify({ transactions: dbTrans, categories: dbKat })], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Backup_CatatDuit_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
     function impor(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (evt) => { try { const data = JSON.parse(evt.target.result); dbTrans = data.transactions || []; dbKat = data.categories || { masuk: [], keluar: [] }; localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); localStorage.setItem('katUser', JSON.stringify(dbKat)); location.reload(); } catch (err) { alert('File tidak valid!'); } }; reader.readAsText(file); }
     window.onload = () => { const t = new Date(); document.getElementById('i-tgl').value = t.toISOString().split('T')[0]; document.getElementById('f-bulan').value = t.toISOString().slice(0, 7); sinkronKategori(); };
