@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CatatDuit v1.4.1 - Stable Baseline</title>
+    <style>
+        :root { --biru: #3498db; --gelap: #2c3e50; --hijau: #2ecc71; --merah: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 400px; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: 95vh; box-sizing: border-box; }
+        
+        .card-saldo { background: linear-gradient(135deg, var(--biru), #2980b9); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
+        .card-saldo h2 { margin: 8px 0; font-size: 1.5rem; }
+        .row-info { display: flex; justify-content: space-around; font-size: 0.8rem; opacity: 0.9; }
+
+        .nav-tabs { display: flex; gap: 5px; background: #eee; padding: 5px; border-radius: 12px; margin-bottom: 15px; }
+        .btn-tab { flex: 1; padding: 12px; border: none; background: none; color: #777; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem; outline: none; }
+        .btn-tab.active { background: white; color: var(--gelap); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .content { display: none; }
+        .content.active { display: block; }
+
+        form { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.7rem; font-weight: bold; color: #666; margin-left: 5px; text-transform: uppercase; }
+        select, input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; width: 100%; box-sizing: border-box; background: #fff; outline: none; }
+        .btn-simpan { padding: 15px; background: var(--hijau); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-batal { padding: 10px; background: #95a5a6; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+
+        details { background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+        summary { padding: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::after { content: '▼'; font-size: 0.6rem; color: #ccc; }
+        details[open] summary::after { content: '▲'; }
+
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 12px 12px 12px; }
+        .summary-item { background: #f9fbfe; border: 1px solid #f0f0f0; padding: 8px; border-radius: 8px; font-size: 0.75rem; }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { border-bottom: 1px solid #f9f9f9; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .list-masuk { border-left: 5px solid var(--hijau); }
+        .list-keluar { border-left: 5px solid var(--merah); }
+        .btn-edit { color: var(--biru); cursor: pointer; font-size: 0.75rem; font-weight: bold; border: 1px solid var(--biru); padding: 2px 6px; border-radius: 5px; margin-right: 10px; }
+        .btn-hapus { color: #ccc; cursor: pointer; font-size: 1.2rem; }
+
+        .tools-area { border-top: 2px dashed #eee; margin-top: 30px; padding: 15px 0; text-align: center; }
+        .btn-tool { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.7rem; cursor: pointer; background: #fff; margin: 5px; }
+
+        @media print {
+            .nav-tabs, form, .tools-area, .btn-edit, .btn-hapus, .btn-batal, h1, button, input, select { display: none !important; }
+            .container { box-shadow: none; max-width: 100%; border: none; width: 100%; padding: 0; }
+            .card-saldo { background: #fff !important; color: #000 !important; border: 2px solid #eee; }
+            details { border: 1px solid #eee !important; display: block !important; }
+            details > summary::after { display: none !important; }
+            details > * { display: block !important; }
+            .content { display: block !important; }
+            #tab-catat { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 onclick="location.reload()" style="cursor:pointer">💰 CatatDuit</h1>
+
+    <div class="card-saldo">
+        <p id="label-saldo" style="margin:0; font-size:0.7rem;">Saldo Bulan Ini</p>
+        <h2 id="view-saldo">Rp 0</h2>
+        <div class="row-info">
+            <span>Masuk: <b id="view-in">0</b></span>
+            <span>|</span>
+            <span>Keluar: <b id="view-out">0</b></span>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="btn-tab active" id="tab-btn-catat" onclick="bukaHalaman('tab-catat')">📝 Catat</button>
+        <button class="btn-tab" id="btn-tab-riwayat" onclick="bukaHalaman('tab-riwayat')">📊 Riwayat</button>
+    </div>
+
+    <div id="tab-catat" class="content active">
+        <form id="main-form" onsubmit="simpanData(event)">
+            <label>Jenis</label>
+            <select id="i-jenis" onchange="sinkronKategori()">
+                <option value="keluar">🔴 Pengeluaran</option>
+                <option value="masuk">🟢 Pemasukan</option>
+            </select>
+            <label>Kategori Utama</label>
+            <select id="i-kat" onchange="cekKategoriBaru()"></select>
+            <div id="box-baru" style="display:none; margin-top:5px;"><input type="text" id="i-nama-baru" placeholder="Nama kategori baru..."></div>
+            <label>Sub-Kategori (Detail Bebas)</label>
+            <input type="text" id="i-sub" placeholder="Misal: Sembako, Jajan, Listrik">
+            <label>Tanggal</label>
+            <input type="date" id="i-tgl" required>
+            <label>Keterangan</label>
+            <input type="text" id="i-ket" placeholder="Keterangan pengeluaran" required>
+            <label>Nominal (Rp)</label>
+            <input type="text" id="i-nom" placeholder="0" oninput="mask(this)" required>
+            <button type="submit" class="btn-simpan" id="btn-submit">Simpan Transaksi</button>
+            <button type="button" class="btn-batal" id="btn-cancel" style="display:none" onclick="batalEdit()">Batal Edit</button>
+        </form>
+    </div>
+
+    <div id="tab-riwayat" class="content">
+        <div style="background:#fff; border:1px solid #eee; padding:10px; border-radius:12px; margin-bottom:15px;">
+            <label>Filter Bulan</label>
+            <input type="month" id="f-bulan" onchange="renderUI()">
+            <label style="display:block; margin-top:10px;">Filter Kategori</label>
+            <select id="f-kat" onchange="renderUI()"></select>
+            <label style="display:block; margin-top:10px;">Cari Detail (Sub-Kategori)</label>
+            <input type="text" id="f-sub" placeholder="Ketik detail yang dicari..." oninput="renderUI()">
+            <button style="width:100%; padding:10px; background:var(--gelap); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px; cursor:pointer; font-size:0.8rem;" onclick="window.print()">📄 Simpan PDF</button>
+        </div>
+
+        <details id="summary-panel" class="summary-panel">
+            <summary>📊 Sisa Saldo per Pos</summary>
+            <div id="summary-grid" class="summary-grid"></div>
+        </details>
+
+        <div id="list-render"></div>
+        
+        <div class="tools-area">
+            <button class="btn-tool" style="color:var(--biru)" onclick="ekspor()">💾 Backup</button>
+            <button class="btn-tool" style="color:var(--merah)" onclick="document.getElementById('file-in').click()">📂 Restore</button>
+            <input type="file" id="file-in" style="display:none" onchange="impor(event)">
+        </div>
+    </div>
+</div>
+
+<script>
+    let dbTrans = JSON.parse(localStorage.getItem('dataDuit')) || [];
+    let dbKat = JSON.parse(localStorage.getItem('katUser')) || { masuk: [], keluar: [] };
+    let editId = null;
+    const KAT_DEF = { masuk: ['Gaji', 'Bonus'], keluar: ['Sembako', 'Jajan', 'Transport', 'Tagihan'] };
+    const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+    function bukaHalaman(id) {
+        document.getElementById('tab-catat').style.display = 'none';
+        document.getElementById('tab-riwayat').style.display = 'none';
+        document.getElementById('tab-btn-catat').classList.remove('active');
+        document.getElementById('btn-tab-riwayat').classList.remove('active');
+        const target = document.getElementById(id);
+        if(target) {
+            target.style.display = 'block';
+            if(id === 'tab-catat') document.getElementById('tab-btn-catat').classList.add('active');
+            else {
+                document.getElementById('btn-tab-riwayat').classList.add('active');
+                updateFilterDropdown();
+                renderUI();
+            }
+        }
+    }
+
+    function sinkronKategori() {
+        const j = document.getElementById('i-jenis').value;
+        const sel = document.getElementById('i-kat');
+        const kats = [...new Set([...KAT_DEF[j], ...(dbKat[j] || [])])];
+        sel.innerHTML = kats.map(k => `<option value="${k}">${k}</option>`).join('') + '<option value="BARU">➕ Tambah Baru...</option>';
+        cekKategoriBaru();
+    }
+
+    function cekKategoriBaru() {
+        const v = document.getElementById('i-kat').value;
+        const box = document.getElementById('box-baru');
+        if(box) box.style.display = (v === 'BARU') ? 'block' : 'none';
+    }
+
+    function updateFilterDropdown() {
+        const sel = document.getElementById('f-kat');
+        if(!sel) return;
+        const val = sel.value;
+        const kats = [...new Set([...KAT_DEF.masuk, ...KAT_DEF.keluar, ...dbKat.masuk, ...dbKat.keluar])].sort();
+        sel.innerHTML = '<option value="ALL">🌍 Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join('');
+        sel.value = val || "ALL";
+    }
+
+    function renderUI() {
+        const container = document.getElementById('list-render');
+        const grid = document.getElementById('summary-grid');
+        const bln = document.getElementById('f-bulan').value || "";
+        const filK = document.getElementById('f-kat').value || "ALL";
+        const filSub = (document.getElementById('f-sub').value || "").toLowerCase();
+        
+        if(!container || !grid) return;
+        container.innerHTML = ''; grid.innerHTML = '';
+        let tin = 0, tout = 0, ringkasan = {}, grupTgl = {};
+
+        try {
+            const filtered = dbTrans.filter(d => {
+                const matchBulan = (d.tanggal || "").startsWith(bln);
+                const matchKat = (filK === "ALL" || d.kategori === filK);
+                const matchSub = (filSub === "" || (d.subKategori && String(d.subKategori).toLowerCase().includes(filSub)));
+                return matchBulan && matchKat && matchSub;
+            }).sort((a,b) => String(b.tanggal).localeCompare(String(a.tanggal)));
+
+            filtered.forEach(d => {
+                const n = parseInt(d.nominal) || 0;
+                d.jenis === 'masuk' ? tin += n : tout += n;
+                
+                if(!ringkasan[d.kategori]) ringkasan[d.kategori] = 0;
+                if(d.jenis === 'masuk') ringkasan[d.kategori] += n;
+                else ringkasan[d.kategori] -= n;
+
+                const tgl = d.tanggal || "Tanpa Tanggal";
+                if(!grupTgl[tgl]) grupTgl[tgl] = { items: [], total: 0 };
+                grupTgl[tgl].items.push(d);
+                d.jenis === 'masuk' ? grupTgl[tgl].total += n : grupTgl[tgl].total -= n;
+            });
+
+            Object.keys(ringkasan).sort().forEach(k => {
+                const s = ringkasan[k];
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.innerHTML = `<span>${k}</span><br><b style="color:${s>=0?'var(--hijau)':'var(--merah)'}">Rp ${s.toLocaleString('id-ID')}</b>`;
+                grid.appendChild(div);
+            });
+            document.getElementById('summary-panel').style.display = Object.keys(ringkasan).length ? 'block' : 'none';
+
+            Object.keys(grupTgl).sort((a,b) => b.localeCompare(a)).forEach((t, idx) => {
+                const det = document.createElement('details');
+                det.open = true; 
+                const dObj = new Date(t);
+                const h = isNaN(dObj.getDay()) ? "" : HARI[dObj.getDay()];
+                const net = grupTgl[t].total;
+
+                det.innerHTML = `
+                    <summary>
+                        <div>
+                            <strong>📅 ${h} ${t.split('-').reverse().join('/')}</strong><br>
+                            <small style="color:${net>=0?'var(--hijau)':'var(--merah)'}">Arus: ${net.toLocaleString('id-ID')}</small>
+                        </div>
+                    </summary>
+                    <ul id="list-${t}"></ul>
+                `;
+                container.appendChild(det);
+                const ul = det.querySelector('ul');
+                grupTgl[t].items.forEach(d => {
+                    const li = document.createElement('li');
+                    li.className = d.jenis === 'masuk' ? 'list-masuk' : 'list-keluar';
+                    li.innerHTML = `
+                        <div><strong>${d.ket}</strong><br><small style="color:#888">${d.kategori}${d.subKategori ? ' > '+d.subKategori : ''}</small></div>
+                        <div style="text-align:right">
+                            <b style="color:${d.jenis==='masuk'?'var(--hijau)':'var(--merah)'}">${parseInt(d.nominal).toLocaleString('id-ID')}</b><br>
+                            <span class="btn-edit" onclick="mulaiEdit(${d.id})">EDIT</span>
+                            <span class="btn-hapus" onclick="hapusData(${d.id})">✕</span>
+                        </div>
+                    `;
+                    ul.appendChild(li);
+                });
+            });
+
+            document.getElementById('view-in').innerText = tin.toLocaleString('id-ID');
+            document.getElementById('view-out').innerText = tout.toLocaleString('id-ID');
+            document.getElementById('view-saldo').innerText = "Rp " + (tin - tout).toLocaleString('id-ID');
+            if(bln) {
+                const lb = new Date(bln + "-01");
+                document.getElementById('label-saldo').innerText = "Saldo " + lb.toLocaleString('id-ID', {month:'long', year:'numeric'});
+            }
+        } catch (e) { console.error("Render Error:", e); }
+    }
+
+    function mask(el) {
+        let v = el.value.replace(/\D/g, '');
+        el.value = v ? parseInt(v).toLocaleString('id-ID') : '';
+    }
+
+    function simpanData(e) {
+        e.preventDefault();
+        const j = document.getElementById('i-jenis').value;
+        let k = document.getElementById('i-kat').value;
+        const n = document.getElementById('i-nom').value.replace(/\D/g, '');
+        if(k === 'BARU') {
+            k = document.getElementById('i-nama-baru').value.trim();
+            if(!k) return alert('Isi nama kategori!');
+            if(!dbKat[j].includes(k)) dbKat[j].push(k);
+            localStorage.setItem('katUser', JSON.stringify(dbKat));
+        }
+        const data = { id: editId || Date.now(), tanggal: document.getElementById('i-tgl').value, jenis: j, kategori: k, subKategori: document.getElementById('i-sub').value.trim(), ket: document.getElementById('i-ket').value, nominal: n };
+        if(editId) { const idx = dbTrans.findIndex(x => x.id === editId); if(idx !== -1) dbTrans[idx] = data; } 
+        else { dbTrans.push(data); }
+        localStorage.setItem('dataDuit', JSON.stringify(dbTrans));
+        alert('Tersimpan!'); batalEdit(); bukaHalaman('tab-riwayat');
+    }
+
+    function mulaiEdit(id) {
+        const d = dbTrans.find(x => x.id === id);
+        if(!d) return;
+        editId = id;
+        document.getElementById('i-jenis').value = d.jenis;
+        sinkronKategori();
+        document.getElementById('i-kat').value = d.kategori;
+        document.getElementById('i-sub').value = d.subKategori || "";
+        document.getElementById('i-tgl').value = d.tanggal;
+        document.getElementById('i-ket').value = d.ket;
+        document.getElementById('i-nom').value = parseInt(d.nominal).toLocaleString('id-ID');
+        document.getElementById('btn-submit').innerText = "UPDATE DATA";
+        document.getElementById('btn-submit').style.background = "#3498db";
+        document.getElementById('btn-cancel').style.display = "block";
+        bukaHalaman('tab-catat');
+    }
+
+    function batalEdit() {
+        editId = null; document.getElementById('main-form').reset();
+        document.getElementById('btn-submit').innerText = "Simpan Transaksi";
+        document.getElementById('btn-submit').style.background = "#2ecc71";
+        document.getElementById('btn-cancel').style.display = "none";
+        init();
+    }
+
+    function hapusData(id) { if(confirm('Hapus transaksi ini?')) { dbTrans = dbTrans.filter(x => x.id !== id); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderUI(); } }
+
+    function ekspor() {
+        const blob = new Blob([JSON.stringify({ transactions: dbTrans, categories: dbKat }, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `Backup_CatatDuit_${new Date().toISOString().slice(0,10)}.json`; a.click();
+    }
+
+    function impor(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = JSON.parse(evt.target.result);
+                if(confirm('Impor data akan menimpa data saat ini. Lanjutkan?')) {
+                    dbTrans = data.transactions || []; dbKat = data.categories || { masuk: [], keluar: [] };
+                    localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); localStorage.setItem('katUser', JSON.stringify(dbKat));
+                    location.reload();
+                }
+            } catch (err) { alert('File tidak valid!'); }
+        };
+        reader.readAsText(file);
+    }
+
+    function init() {
+        const t = new Date();
+        const tglInput = document.getElementById('i-tgl');
+        const blnInput = document.getElementById('f-bulan');
+        if(tglInput) tglInput.value = t.toISOString().split('T')[0];
+        if(blnInput) blnInput.value = t.toISOString().slice(0, 7);
+    }
+
+    window.onload = function() { init(); sinkronKategori(); renderUI(); };
+</script>
+</body>
+</html>
