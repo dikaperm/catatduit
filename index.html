@@ -33,7 +33,7 @@
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; width: 100%; box-sizing: border-box; outline: none; background: #fff; }
         .btn-simpan { padding: 15px; background: var(--hijau); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px; }
 
-        /* Settings Modal & Dropdowns */
+        /* Modal Settings */
         #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 95%; max-width: 380px; padding: 25px; border-radius: 20px; text-align: center; max-height: 85vh; overflow-y: auto; }
         .credit-msg { font-size: 0.85rem; color: #555; font-style: italic; background: #f0f7ff; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid var(--biru); line-height: 1.4; }
@@ -46,11 +46,11 @@
         .btn-tool { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; font-size: 0.8rem; cursor: pointer; background: #fff; margin-bottom: 8px; text-align: left; font-weight: bold; }
         .btn-close { margin-top: 15px; background: var(--gelap); color: white; padding: 12px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
 
-        /* Tab Pos */
+        /* Pos Tab */
         .pos-card { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .hr-pos { border: 0; border-top: 1.5px solid #eee; margin: 5px 0; width: 100%; }
 
-        /* Calendar */
+        /* Calendar & Daily */
         .cal-wrapper { background: #f9fbfe; border-radius: 15px; padding: 10px; border: 1px solid #eee; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
         .cal-head { font-size: 0.6rem; font-weight: bold; color: #aaa; padding-bottom: 5px; text-transform: uppercase; }
@@ -153,7 +153,7 @@
         if (!isOpen) { 
             renderManageCategories(); 
             updatePdfSelect();
-            // FIX: Tutup semua accordion saat modal dibuka
+            // Reset Dropdowns
             document.querySelectorAll('#settings-modal details').forEach(d => d.open = false);
         }
     }
