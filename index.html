@@ -40,7 +40,6 @@
         .trx-card { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 15px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .trx-left { display: flex; flex-direction: column; gap: 5px; max-width: 65%; }
         .trx-ket { font-weight: bold; font-size: 0.85rem; color: var(--gelap); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
         .trx-tag-col { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin-top: 2px; }
         .trx-kat-pill { font-size: 0.6rem; background: #f0f7ff; padding: 2px 8px; border-radius: 6px; color: var(--biru); font-weight: bold; text-transform: uppercase; }
         .trx-sub-pill { font-size: 0.6rem; background: #f9f9f9; padding: 2px 8px; border-radius: 6px; color: #888; border: 1px solid #eee; }
@@ -216,6 +215,7 @@
         sel.innerHTML = '<option value="ALL">Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join('');
     }
 
+    // RANGE LOGIC: Month picker 'M' = Cycle starts (M-1) 25 until (M) 24.
     function getCycleRange(yearMonth) {
         const [y, m] = yearMonth.split('-').map(Number);
         const start = new Date(y, m - 2, cycleDay).toISOString().split('T')[0];
@@ -249,15 +249,11 @@
 
     function hapusKategori(n, j) { if (confirm(`Hapus kategori "${n}"?`)) { dbKat[j] = dbKat[j].filter(k => k !== n); dbTrans = dbTrans.filter(d => d.kategori !== n); localStorage.setItem('katUser', JSON.stringify(dbKat)); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderManageCategories(); renderUI(); renderCalendar(); } }
     
-    // UPDATED FUNCTION: Close calendar on tab switch
     function bukaHalaman(id, btn) { 
         document.querySelectorAll('.content').forEach(c => c.style.display = 'none'); 
         document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); 
         document.getElementById(id).style.display = 'block'; if(btn) btn.classList.add('active');
-        
-        // RESET CALENDAR STATE ON SWITCH
         document.querySelectorAll('#tab-riwayat details').forEach(d => d.open = false);
-
         if(id === 'tab-catat') { sinkronKategori(); renderUI(); }
         else if(id === 'tab-riwayat') { updateFilterDropdown(); renderCalendar(); renderUI(); } 
         else renderPos();
@@ -368,7 +364,19 @@
     function hapusData(id) { if(confirm('Hapus catatan ini?')) { dbTrans = dbTrans.filter(x => x.id !== id); localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); renderCalendar(); renderUI(); } }
     function ekspor() { const blob = new Blob([JSON.stringify({ transactions: dbTrans, categories: dbKat })], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Data_CatatDuit_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
     function impor(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (evt) => { try { const data = JSON.parse(evt.target.result); dbTrans = data.transactions || []; dbKat = data.categories || { masuk: [], keluar: [] }; localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); localStorage.setItem('katUser', JSON.stringify(dbKat)); location.reload(); } catch (err) { alert('File tidak valid!'); } }; reader.readAsText(file); }
-    window.onload = () => { const t = new Date(); document.getElementById('i-tgl').value = t.toISOString().split('T')[0]; document.getElementById('f-bulan').value = t.toISOString().slice(0, 7); sinkronKategori(); renderUI(); };
+
+    // BUG FIX LOGIC: Default to NEXT MONTH if today >= cycleDay
+    window.onload = () => { 
+        const now = new Date(); 
+        document.getElementById('i-tgl').value = now.toISOString().split('T')[0];
+        
+        // On April 27, now.getDate()=27 >= 25. targetDate moves to MAY (Month Index 4).
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + (now.getDate() >= cycleDay ? 1 : 0), 1);
+        document.getElementById('f-bulan').value = targetDate.toISOString().slice(0, 7);
+        
+        sinkronKategori(); 
+        renderUI(); 
+    };
 </script>
 </body>
 </html>
