@@ -13,10 +13,12 @@
         .logo { text-align: center; color: var(--gelap); font-size: 2rem; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .btn-gear { position: absolute; right: 20px; top: 25px; font-size: 1.5rem; cursor: pointer; color: #ccc; z-index: 10; }
 
+        /* Dashboard Card */
         .card-saldo { background: linear-gradient(135deg, var(--biru), #2980b9); color: white; padding: 18px; border-radius: 20px; text-align: center; margin-bottom: 15px; }
         .card-saldo h2 { margin: 8px 0; font-size: 1.6rem; }
         .row-info { display: flex; justify-content: space-around; font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; margin-top: 10px; }
 
+        /* Navigation */
         .nav-tabs { display: flex; gap: 5px; background: #eee; padding: 5px; border-radius: 12px; margin-bottom: 15px; }
         .btn-tab { flex: 1; padding: 10px 5px; border: none; background: none; color: #777; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.75rem; outline: none; }
         .btn-tab.active { background: white; color: var(--gelap); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -40,6 +42,8 @@
         .trx-card { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 15px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .trx-left { display: flex; flex-direction: column; gap: 5px; max-width: 65%; }
         .trx-ket { font-weight: bold; font-size: 0.85rem; color: var(--gelap); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Layout Sub-Kategori di bawah Kategori */
         .trx-tag-col { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin-top: 2px; }
         .trx-kat-pill { font-size: 0.6rem; background: #f0f7ff; padding: 2px 8px; border-radius: 6px; color: var(--biru); font-weight: bold; text-transform: uppercase; }
         .trx-sub-pill { font-size: 0.6rem; background: #f9f9f9; padding: 2px 8px; border-radius: 6px; color: #888; border: 1px solid #eee; }
@@ -80,7 +84,7 @@
     <div class="logo" onclick="location.reload()">💰 CatatDuit</div>
 
     <div class="card-saldo">
-        <p style="margin:0; font-size:0.7rem;">Sisa Duit</p>
+        <p style="margin:0; font-size:0.7rem;">Sisa Duit (Akumulasi)</p>
         <h2 id="view-saldo">Rp 0</h2>
         <div class="row-info">
             <span>In Cycle: <b id="view-in">0</b></span>
@@ -120,7 +124,9 @@
 
     <div id="tab-riwayat" class="content">
         <div style="background:#fff; border:1px solid #eee; padding:12px; border-radius:15px; margin-bottom:10px;">
-            <label>Filter Bulan (Siklus Mulai)</label><input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();" style="margin-bottom:0;">
+            <label>Master Siklus Bulan (Manual)</label>
+            <input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();" style="margin-bottom:0;">
+            <p style="font-size:0.6rem; color:#999; margin:5px 0 0 5px;">*Ganti bulan di sini untuk reset tampilan dashboard.</p>
         </div>
         <details class="clean-acc">
             <summary class="clean-sum">📅 Lihat Kalender Transaksi</summary>
@@ -128,12 +134,12 @@
         </details>
         
         <div style="background:#fff; border:1px solid #eee; padding:12px; border-radius:15px; margin-bottom:10px;">
-            <label>Kategori Utama</label>
+            <label>Filter Kategori</label>
             <select id="f-kat" onchange="renderUI()" style="margin-bottom:12px;"></select>
             <label>Pencarian Sub-Kategori</label>
             <div class="search-wrapper">
                 <span>🔍</span>
-                <input type="text" id="f-sub" placeholder="Cari detail (Misal: Listrik)..." oninput="renderUI()">
+                <input type="text" id="f-sub" placeholder="Cari detail..." oninput="renderUI()">
             </div>
         </div>
 
@@ -215,8 +221,7 @@
         sel.innerHTML = '<option value="ALL">Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join('');
     }
 
-    // LOGIKA BARU: Bulan di picker = Bulan MULAI siklus.
-    // April (m=4) = 25 April sampai 24 Mei.
+    // LOGIKA MANUAL: Pilih April = Siklus dimulai 25 April sampai 24 Mei.
     function getCycleRange(yearMonth) {
         const [y, m] = yearMonth.split('-').map(Number);
         const start = new Date(y, m - 1, cycleDay).toISOString().split('T')[0];
@@ -278,34 +283,37 @@
         const filSub = (document.getElementById('f-sub') ? document.getElementById('f-sub').value : "").toLowerCase();
         const range = getCycleRange(bln);
         
-        let tin = 0, tout = 0;
+        let tinCycle = 0, toutCycle = 0;
         let tInAll = 0, tOutAll = 0;
         let dIn = 0, dOut = 0;
 
-        dbTrans.filter(d => d.tanggal === selectedDate).forEach(d => {
-            d.jenis === 'masuk' ? dIn += parseInt(d.nominal) : dOut += parseInt(d.nominal);
-        });
-        document.getElementById('day-in').innerText = dIn.toLocaleString('id-ID');
-        document.getElementById('day-out').innerText = dOut.toLocaleString('id-ID');
-
         dbTrans.forEach(d => { 
             const n = parseInt(d.nominal);
+            // Saldo Total Dompet
             d.jenis === 'masuk' ? tInAll += n : tOutAll += n;
+            // Saldo Harian
+            if(d.tanggal === selectedDate) {
+                d.jenis === 'masuk' ? dIn += n : dOut += n;
+            }
+            // Saldo Siklus Berdasarkan Master Switch
             const isInsideCycle = (d.tanggal >= range.start && d.tanggal <= range.end);
-            const matchesKat = (filK === "ALL" || d.kategori === filK);
-            const matchesSub = (filSub === "" || (d.ket && d.ket.toLowerCase().includes(filSub)) || (d.subKategori && d.subKategori.toLowerCase().includes(filSub)));
-            if(isInsideCycle && matchesKat && matchesSub) {
-                d.jenis === 'masuk' ? tin += n : tout += n;
-            } 
+            if(isInsideCycle) {
+                const matchesKat = (filK === "ALL" || d.kategori === filK);
+                const matchesSub = (filSub === "" || (d.ket && d.ket.toLowerCase().includes(filSub)) || (d.subKategori && d.subKategori.toLowerCase().includes(filSub)));
+                if(matchesKat && matchesSub) {
+                    d.jenis === 'masuk' ? tinCycle += n : toutCycle += n;
+                }
+            }
         });
 
         document.getElementById('view-saldo').innerText = "Rp " + (tInAll - tOutAll).toLocaleString('id-ID');
-        document.getElementById('view-in').innerText = tin.toLocaleString('id-ID'); 
-        document.getElementById('view-out').innerText = tout.toLocaleString('id-ID');
+        document.getElementById('view-in').innerText = tinCycle.toLocaleString('id-ID'); 
+        document.getElementById('view-out').innerText = toutCycle.toLocaleString('id-ID');
+        document.getElementById('day-in').innerText = dIn.toLocaleString('id-ID');
+        document.getElementById('day-out').innerText = dOut.toLocaleString('id-ID');
         
         container.innerHTML = ''; 
         const list = dbTrans.filter(d => d.tanggal === selectedDate && (filK === "ALL" || d.kategori === filK) && (filSub === "" || (d.ket && d.ket.toLowerCase().includes(filSub)) || (d.subKategori && d.subKategori.toLowerCase().includes(filSub))));
-        
         if(list.length === 0) container.innerHTML = `<p style="text-align:center; color:#999; font-size:0.7rem; margin-top:20px;">Data tidak ditemukan.</p>`;
         else {
             list.forEach(d => {
@@ -366,16 +374,12 @@
     function ekspor() { const blob = new Blob([JSON.stringify({ transactions: dbTrans, categories: dbKat })], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Data_CatatDuit_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
     function impor(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (evt) => { try { const data = JSON.parse(evt.target.result); dbTrans = data.transactions || []; dbKat = data.categories || { masuk: [], keluar: [] }; localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); localStorage.setItem('katUser', JSON.stringify(dbKat)); location.reload(); } catch (err) { alert('File tidak valid!'); } }; reader.readAsText(file); }
 
-    // LOGIKA PERBAIKAN: Otomatis pilih siklus yang sedang aktif.
     window.onload = () => { 
         const now = new Date(); 
         document.getElementById('i-tgl').value = now.toISOString().split('T')[0];
-        
-        // JIKA hari ini tgl 27 April (>= 25), aplikasi akan pilih "April".
-        // Siklusnya: 25 April - 24 Mei. (RESET BERHASIL)
+        // AUTO-SELECT CYCLE: Jika tgl 27 Apr, pilih bulan Apr. Jika tgl 20 Apr, pilih Mar.
         const targetDate = new Date(now.getFullYear(), now.getMonth() - (now.getDate() < cycleDay ? 1 : 0), 1);
         document.getElementById('f-bulan').value = targetDate.toISOString().slice(0, 7);
-        
         sinkronKategori(); 
         renderUI(); 
     };
