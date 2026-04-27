@@ -120,7 +120,7 @@
 
     <div id="tab-riwayat" class="content">
         <div style="background:#fff; border:1px solid #eee; padding:12px; border-radius:15px; margin-bottom:10px;">
-            <label>Filter Bulan</label><input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();" style="margin-bottom:0;">
+            <label>Filter Bulan (Siklus Mulai)</label><input type="month" id="f-bulan" onchange="renderCalendar(); renderUI();" style="margin-bottom:0;">
         </div>
         <details class="clean-acc">
             <summary class="clean-sum">📅 Lihat Kalender Transaksi</summary>
@@ -215,11 +215,12 @@
         sel.innerHTML = '<option value="ALL">Semua Kategori</option>' + kats.map(k => `<option value="${k}">${k}</option>`).join('');
     }
 
-    // RANGE LOGIC: Month picker 'M' = Cycle starts (M-1) 25 until (M) 24.
+    // LOGIKA BARU: Bulan di picker = Bulan MULAI siklus.
+    // April (m=4) = 25 April sampai 24 Mei.
     function getCycleRange(yearMonth) {
         const [y, m] = yearMonth.split('-').map(Number);
-        const start = new Date(y, m - 2, cycleDay).toISOString().split('T')[0];
-        const end = new Date(y, m - 1, cycleDay - 1).toISOString().split('T')[0];
+        const start = new Date(y, m - 1, cycleDay).toISOString().split('T')[0];
+        const end = new Date(y, m, cycleDay - 1).toISOString().split('T')[0];
         return { start, end };
     }
 
@@ -365,13 +366,14 @@
     function ekspor() { const blob = new Blob([JSON.stringify({ transactions: dbTrans, categories: dbKat })], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Data_CatatDuit_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
     function impor(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (evt) => { try { const data = JSON.parse(evt.target.result); dbTrans = data.transactions || []; dbKat = data.categories || { masuk: [], keluar: [] }; localStorage.setItem('dataDuit', JSON.stringify(dbTrans)); localStorage.setItem('katUser', JSON.stringify(dbKat)); location.reload(); } catch (err) { alert('File tidak valid!'); } }; reader.readAsText(file); }
 
-    // BUG FIX LOGIC: Default to NEXT MONTH if today >= cycleDay
+    // LOGIKA PERBAIKAN: Otomatis pilih siklus yang sedang aktif.
     window.onload = () => { 
         const now = new Date(); 
         document.getElementById('i-tgl').value = now.toISOString().split('T')[0];
         
-        // On April 27, now.getDate()=27 >= 25. targetDate moves to MAY (Month Index 4).
-        const targetDate = new Date(now.getFullYear(), now.getMonth() + (now.getDate() >= cycleDay ? 1 : 0), 1);
+        // JIKA hari ini tgl 27 April (>= 25), aplikasi akan pilih "April".
+        // Siklusnya: 25 April - 24 Mei. (RESET BERHASIL)
+        const targetDate = new Date(now.getFullYear(), now.getMonth() - (now.getDate() < cycleDay ? 1 : 0), 1);
         document.getElementById('f-bulan').value = targetDate.toISOString().slice(0, 7);
         
         sinkronKategori(); 
